@@ -1,0 +1,122 @@
+
+\documentclass[french,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=0.85in]{geometry} % Réduire les marges
+\usepackage[francais]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+\usepackage{cite} % Pour importer une bibliographie
+
+\usepackage{bbm}
+\usepackage{mathtools}
+%\usepackage{ulem} % Pour barrer du texte
+\usepackage{xcolor} % Pour colorer des symboles dans les équations
+
+\usepackage{tikz} % Pour les dessins
+\usepackage{enumitem} % Pour mettre des symboles au choix dans les énumérations
+\usepackage{xfrac} % Pour faire des petites fractions : \sfrac{5}{7}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode} % Pour écrire des algorithmes
+\floatname{algorithm}{Algorithme} % ... en français
+
+
+% Theorems
+\theoremstyle{plain}
+\newtheorem{theorem}{Théorème}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemme}
+\newtheorem{corollary}{Corollaire}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Définition}
+
+\theoremstyle{remark}
+\newtheorem{remark}{Remarque}
+\newtheorem{example}{Exemple}
+
+
+% Math operators
+\newcommand{\scal}[2]{\left\langle #1 , #2 \right\rangle}
+\DeclareMathOperator{\IR}{\mathbb{R}}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator{\One}{\mathbbm{1}}
+\DeclareMathOperator{\Ccal}{\mathcal{C}}
+\DeclareMathOperator{\logsumexp}{logsumexp}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\MAP}{MAP}
+
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\renewcommand{\epsilon}{\varepsilon}
+
+
+
+\title{Outils mathématiques pour la science des données\\
+Déconvolution aveugle}
+\date{Janvier 2018}
+\author{Alexis THIBAULT}
+
+\begin{document}
+
+\maketitle
+
+
+\section{Introduction}
+La déconvolution aveugle (\textit{blind deconvolution} en anglais) est une technique de traitement d'image visant à restaurer une image floutée, où le noyau de convolution (PSF, pour \textit{point spread function}) est inconnu. En faisant des hypothèses sur les images de départ et sur les noyaux, on parvient à estimer le noyau et à restituer une image plus nette. Les applications principales sont en astronomie et en imagerie médicale.
+
+\section{Formulation mathématique}
+\subsection{Problème}
+On dispose d'une observation déformée et bruitée $y$ d'un signal d'origine $x$ qu'on souhaite récupérer. L'altération est modélisée par une convolution par un noyau $k$ et l'ajout d'un bruit $w$.
+\[
+y = k * x + w.
+\]
+Ici on s'intéressera principalement au cas où $x$ et $y$ sont des images à deux dimensions (donc des grilles de pixels).
+\subsection{Méthode de résolution}
+On choisit un modèle pour les images naturelles, donné par une fonction de densité $p_x$, un modèle pour les noyaux $p_k$, et un modèle pour le bruit $p_w$.
+Étant donnés ces modèles, on effectue une estimation pour le noyau en considérant le \emph{maximum a posteriori} ($\MAP_k$)~:
+\[
+\hat{k} = \argmax p\left( k \mid y \right) = \argmax \int p\left( x,k \mid y \right) dx,
+\]
+puis on calcule la déconvolution (non aveugle) à partir de ce noyau. La probabilité conditionnelle est donnée par les formules classiques~:
+\[
+p\left(x,k \mid y \right) = \frac{p(x,k,y)}{p(y)} = \frac{p(y \mid x,k) \; p(x) \; p(k)}{p(y)}
+\]
+Le dénominateur est une constante~; le premier facteur du numérateur est relatif au modèle du bruit $w = y - k*x$, le deuxième au modèle d'images, et le troisième au modèle de noyaux. On peut donc réécrire la fonction à maximiser en faisant apparaître explicitement les modèles~:
+\[
+\hat{k} = \argmax \int p_x(x) p_k(k) p_w(y - k*x) dx
+\]
+
+\subsection{Modèles a priori}
+
+Considérons les opérateurs de dérivation discrète $(f_h,f_v) = ((-1,1),(-1,1)^T)$. Le modèle qu'on prend pour les images naturelles se base sur l'idée que les dérivées sont parcimonieuses. On se donne une fonction $\rho$, mélange de gaussiennes, puis on suppose toutes les coordonnées des dérivées indépendantes de loi $\rho$.
+\begin{align*}
+\rho((f_h*x)_i) &= \sum_j \frac{\pi_j}{\sigma_j \sqrt{2\pi}}e^{-\frac{1}{2\sigma_j^2}\norm{(f_h*x)_i}^2} \\
+p_x(x) &= \prod_i \rho\left((f_h*x)_i \right) \prod_i \rho\left((f_v*x)_i\right) .
+\end{align*}
+On suppose la loi du noyau uniforme. En prenant un bruit blanc gaussien de variance $\eta^2$ pour $w$, on obtient~:
+\[
+p(y\mid x,k) = \frac{1}{(\eta\sqrt{2\pi})^N} e^{-\frac{1}{2\eta^2}\norm{k*x-y}^2} .
+\]
+
+L'intégrale à maximiser est donc~:
+\[
+\hat{k} = \argmax \int \exp\left( - \frac{\norm{k*x-y}^2}{2\eta^2} +  \sum_i \log\left(\rho((f_h*x)_i)\rho((f_v*x)_i)\right)  + c \right) .
+\]
+
+La difficulté ici est que l'on effectue un calcul d'intégrale non trivial. On s'intéresse donc à des stratégies d'approximation.
+
+\section{Algorithme EM}
+Une méthode classique pour calculer un maximum a posteriori (MAP) ou un maximum de vraisemblance (ML, pour \textit{maximum likelihood}) est l'algorithme Espérance-Maximisation (en anglais \textit{expectation-maximization}, ou EM). Cet algorithme permet d'estimer le maximum a posteriori lorsque le modèle probabiliste dépend de variables non observables.
+
+Ici on considère que l'image de départ $x$ est une variable cachée. 
+
+
+\end{document}
+
+

@@ -1,0 +1,11 @@
+ML_DeepNets/*
+numerical-tours-master/*
+*.pdf
+*.aux
+*.bbl
+*.blg
+*.log
+*.gz
+.ipynb_checkpoints/*
+*~
+*#*
