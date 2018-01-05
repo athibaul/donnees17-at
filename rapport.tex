@@ -66,25 +66,57 @@ Blind deconvolution}
 
 \maketitle
 
+\section{Abstract}
+Blur is a common artifact in medical imagery, astronomy, microscopy, or even photography, which is generally undesirable as it obscures significant information.
+In many cases the distortion can be modeled as a convolution, with an unknown kernel \cite{fergus2006removing,cho2009fast,cho2010motion,jia2007single,xu2010two}. One must therefore use \emph{blind deconvolution} to estimate the kernel, along with the de-blurred image.
+Since there are more unknowns than data, the problem is ill-posed: assumptions are needed on the original image. The typical constraints are expressed as statistics on the distribution of the gradient \cite{joshi2008psf,krishnan2009fast,levi2009using,levin2007blind}, although more complex techniques have also been proposed \cite{miskin2000ensemble,jalobeanu2002satellite}. Here, we study the case of a Gaussian prior on the gradient, and show its limitations. We also consider adding a regularity prior on the kernel.
+Blind deconvolution is often performed by alternating estimation of the blur kernel and the corresponding image, within a bayesian framework \cite{richardson1972bayesian,levin2007blind,levin2009understanding,levin2011efficient,krishnan2009fast,joshi2008psf,jia2007single,levi2009using}.
+Here we use \emph{maximum a posteriori} ($\MAP$) estimation. We show numerically that, as explained in \cite{levin2011efficient}, maximizing the likelihood of the kernel ($\MAP_k$) before computing the image yields better results than estimating both image and kernel ($\MAP_{x,k}$).
+
+
+
 
 \section{Introduction}
-Blur is a common artifact in medical imagery, astronomy, microscopy, or even photography, which is generally undesirable as it obscures significant information.
-Such degradation is often approximately linear and shift-invariant, and can thus be modeled by a convolution with a kernel.
+Many photographs taken without a tripod contain disappointing motion blur caused by camera shake. Such degradation is often approximately linear, and except in the special case when complex movement comes into play \cite{shan2007rotational,whyte2012non}, it is shift-invariant. The transformation of the image can thus be modeled as a convolution with a kernel.
+In astronomy as well as microscopy, measuring tools often exhibit a wide \emph{point spread function} (PSF), which results in blurry images, in which significant data is obscured. This may be caused by atmospheric aberrations, or simply by diffraction.
+In medical imagery \cite{chen2016compressive}, data acquired with compressive sensing often shows blur, which makes readings difficult.
 
+In all these cases, we are interested in recovering an approximation of the original image, while being given only a distorted version of it:
+\[
+y = k * x + w.
+\]
 When the \emph{point spread function} (PSF) can be measured, as is sometimes the case in microscopy, the convolution kernel is known.
 Restoring the original image is then a \emph{non-blind deconvolution problem}.
-This simple inverse problem can be solved efficiently.
+This simple inverse problem can be solved efficiently: in the absence of noise, one simply needs to apply the inverse filter in the Fourier domain.
 
-\emph{Blind deconvolution}, which aims at restoring clearness of the image when the convolution kernel is unknown, is more challenging.
-It tries to estimate both the kernel and the original image, based on the blurry one.
-Since the number of unknowns exceeds the data, the problem is ill-posed; one therefore needs to introduce assumptions about natural images.
+Presence of noise makes things slightly more challenging.
+Various image priors may be used \cite{sun2014good}.
+A common form of image prior is obtained by conditioning on the derivatives. Let $(D_h x)_i$ and $(D_v x)_i$ denote the horizontal and vertical discrete derivatives of image $x$ at pixel $i$.
+Take some model $\rho$ for the repartition of the derivatives, and set
+\[
+p(x) = \prod_i \rho((D_h x)_i) \rho((D_v x)_i) .
+\]
+Common settings for function $\rho$ are exponential of power functions \cite{krishnan2009fast,levin2009understanding}, and mixtures of Gaussians (MOG) \cite{levin2011efficient,fergus2006removing}.
+In the case of a Gaussian prior, which corresponds to $\rho(v) \propto e^{-\frac{|v|}{2\sigma^2}}$, we obtain Wiener deconvolution, which may be computed very efficiently in the Fourier domain, but results in ringing artifacts \cite{shan2008high}.
+More advanced methods have been devised for this problem \cite{sun2014good,schmidt2013discriminative}.
+
+
+
+In most real-world cases, however, the kernel is unknown. This makes the problem of \emph{blind deconvolution} even more challenging.
+Based on the blurry image, it aims at estimating both kernel and image.
+Since the number of unknowns exceeds the data, the problem is ill-posed; it is therefore necessary to introduce assumptions about natural images.
+Most commonly, a regularity prior on the image is used \cite{krishnan2009fast,fergus2006removing,levin2007blind,levi2009using,levin2011efficient,levin2009understanding}.
+Again, it is often conditioned with the image derivatives, using various models.
+
+
+
+In practice, $\MAP_{x,k}$ with a Gaussian prior corresponds to alternately performing Wiener deconvolution, and kernel estimation; and $\MAP_k$ is extremely similar, but with an extra term in the kernel estimation.
+
 
 \section{Mathematical formulation}
 \subsection{Problem}
 Suppose we are given a distorted observation $y$ of a ground truth signal $x$, and we would like to recover x. The distortion is a convolution with an unknown kernel $k$, followed by the introduction of noise $w$.
-\[
-y = k * x + w.
-\]
+
 We will focus on the case when $x$ and $y$ are two-dimensional grids of pixels, but the methods can be easily generalized to higher dimensions.
 
 
@@ -127,6 +159,10 @@ Une méthode classique pour calculer un maximum a posteriori (MAP) ou un maximum
 
 Ici on considère que l'image de départ $x$ est une variable cachée. 
 
+
+
+\bibliographystyle{plain}
+\bibliography{references}
 
 \end{document}
 
