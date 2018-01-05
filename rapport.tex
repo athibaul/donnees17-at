@@ -57,9 +57,9 @@
 
 
 
-\title{Outils mathématiques pour la science des données\\
-Déconvolution aveugle}
-\date{Janvier 2018}
+\title{Mathematical foundations of data science\\
+Blind deconvolution}
+\date{January 2018}
 \author{Alexis THIBAULT}
 
 \begin{document}
@@ -68,15 +68,26 @@ Déconvolution aveugle}
 
 
 \section{Introduction}
-La déconvolution aveugle (\textit{blind deconvolution} en anglais) est une technique de traitement d'image visant à restaurer une image floutée, où le noyau de convolution (PSF, pour \textit{point spread function}) est inconnu. En faisant des hypothèses sur les images de départ et sur les noyaux, on parvient à estimer le noyau et à restituer une image plus nette. Les applications principales sont en astronomie et en imagerie médicale.
+Blur is a common artifact in medical imagery, astronomy, microscopy, or even photography, which is generally undesirable as it obscures significant information.
+Such degradation is often approximately linear and shift-invariant, and can thus be modeled by a convolution with a kernel.
 
-\section{Formulation mathématique}
-\subsection{Problème}
-On dispose d'une observation déformée et bruitée $y$ d'un signal d'origine $x$ qu'on souhaite récupérer. L'altération est modélisée par une convolution par un noyau $k$ et l'ajout d'un bruit $w$.
+When the \emph{point spread function} (PSF) can be measured, as is sometimes the case in microscopy, the convolution kernel is known.
+Restoring the original image is then a \emph{non-blind deconvolution problem}.
+This simple inverse problem can be solved efficiently.
+
+\emph{Blind deconvolution}, which aims at restoring clearness of the image when the convolution kernel is unknown, is more challenging.
+It tries to estimate both the kernel and the original image, based on the blurry one.
+Since the number of unknowns exceeds the data, the problem is ill-posed; one therefore needs to introduce assumptions about natural images.
+
+\section{Mathematical formulation}
+\subsection{Problem}
+Suppose we are given a distorted observation $y$ of a ground truth signal $x$, and we would like to recover x. The distortion is a convolution with an unknown kernel $k$, followed by the introduction of noise $w$.
 \[
 y = k * x + w.
 \]
-Ici on s'intéressera principalement au cas où $x$ et $y$ sont des images à deux dimensions (donc des grilles de pixels).
+We will focus on the case when $x$ and $y$ are two-dimensional grids of pixels, but the methods can be easily generalized to higher dimensions.
+
+
 \subsection{Méthode de résolution}
 On choisit un modèle pour les images naturelles, donné par une fonction de densité $p_x$, un modèle pour les noyaux $p_k$, et un modèle pour le bruit $p_w$.
 Étant donnés ces modèles, on effectue une estimation pour le noyau en considérant le \emph{maximum a posteriori} ($\MAP_k$)~:
