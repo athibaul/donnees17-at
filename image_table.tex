@@ -1,0 +1,175 @@
+
+    \begin{figure}
+    \centering
+    \begin{tabular}{c c c}\includegraphics[width=4cm]{images/louxor} 
+& \includegraphics[width=4cm]{images/chocolate} 
+& \includegraphics[width=4cm]{images/candy} 
+\\ 
+\texttt{louxor} 
+& \texttt{chocolate} 
+& \texttt{candy} 
+
+    \end{tabular}
+    \begin{tabular}{c c c c}\includegraphics[width=2cm]{images/kernel1} 
+& \includegraphics[width=2cm]{images/kernel2} 
+& \includegraphics[width=2cm]{images/kernel3} 
+& \includegraphics[width=2cm]{images/kernelgauss} 
+\\ 
+\texttt{kernel1} 
+& \texttt{kernel2} 
+& \texttt{kernel3} 
+& \texttt{kernelgauss} 
+
+\end{tabular}
+\caption{Images and kernels used in our tests}
+\end{figure}
+    \begin{figure}
+    \centering
+    \begin{tabular}{|l|l|l|l|l|l|}
+ \hline 
+Blurred & Non-blind & $\MAP_{x,k}$ & $\MAP_k$, $\sigma_k=+\infty$ & Regularized $\MAP_k$ \\ 
+ \hline 
+\includegraphics[width=2.5cm]{results/louxor_kernel1_blurred.png}
+\includegraphics[width=0.5cm]{images/kernel1}
+& \includegraphics[width=2.5cm]{results/louxor_kernel1_nonblind_deconv.png}
+&\includegraphics[width=2.5cm]{results/louxor_kernel1_MAPxk_x.png}
+\includegraphics[width=0.5cm]{results/louxor_kernel1_MAPxk_k.png}
+&\includegraphics[width=2.5cm]{results/louxor_kernel1_MAPk_x.png}
+\includegraphics[width=0.5cm]{results/louxor_kernel1_MAPk_k.png}
+&\includegraphics[width=2.5cm]{results/louxor_kernel1_MAPkreg_x.png}
+\includegraphics[width=0.5cm]{results/louxor_kernel1_MAPkreg_k.png}
+\\ 
+ \hline\includegraphics[width=2.5cm]{results/louxor_kernel2_blurred.png}
+\includegraphics[width=0.5cm]{images/kernel2}
+& \includegraphics[width=2.5cm]{results/louxor_kernel2_nonblind_deconv.png}
+&\includegraphics[width=2.5cm]{results/louxor_kernel2_MAPxk_x.png}
+\includegraphics[width=0.5cm]{results/louxor_kernel2_MAPxk_k.png}
+&\includegraphics[width=2.5cm]{results/louxor_kernel2_MAPk_x.png}
+\includegraphics[width=0.5cm]{results/louxor_kernel2_MAPk_k.png}
+&\includegraphics[width=2.5cm]{results/louxor_kernel2_MAPkreg_x.png}
+\includegraphics[width=0.5cm]{results/louxor_kernel2_MAPkreg_k.png}
+\\ 
+ \hline\includegraphics[width=2.5cm]{results/louxor_kernel3_blurred.png}
+\includegraphics[width=0.5cm]{images/kernel3}
+& \includegraphics[width=2.5cm]{results/louxor_kernel3_nonblind_deconv.png}
+&\includegraphics[width=2.5cm]{results/louxor_kernel3_MAPxk_x.png}
+\includegraphics[width=0.5cm]{results/louxor_kernel3_MAPxk_k.png}
+&\includegraphics[width=2.5cm]{results/louxor_kernel3_MAPk_x.png}
+\includegraphics[width=0.5cm]{results/louxor_kernel3_MAPk_k.png}
+&\includegraphics[width=2.5cm]{results/louxor_kernel3_MAPkreg_x.png}
+\includegraphics[width=0.5cm]{results/louxor_kernel3_MAPkreg_k.png}
+\\ 
+ \hline\includegraphics[width=2.5cm]{results/louxor_kernelgauss_blurred.png}
+\includegraphics[width=0.5cm]{images/kernelgauss}
+& \includegraphics[width=2.5cm]{results/louxor_kernelgauss_nonblind_deconv.png}
+&\includegraphics[width=2.5cm]{results/louxor_kernelgauss_MAPxk_x.png}
+\includegraphics[width=0.5cm]{results/louxor_kernelgauss_MAPxk_k.png}
+&\includegraphics[width=2.5cm]{results/louxor_kernelgauss_MAPk_x.png}
+\includegraphics[width=0.5cm]{results/louxor_kernelgauss_MAPk_k.png}
+&\includegraphics[width=2.5cm]{results/louxor_kernelgauss_MAPkreg_x.png}
+\includegraphics[width=0.5cm]{results/louxor_kernelgauss_MAPkreg_k.png}
+\\ 
+ \hline\end{tabular} 
+
+    \caption{Results on \texttt{louxor} image}\label{fig:results_louxor}
+    \end{figure}
+    \begin{figure}
+    \centering
+    \begin{tabular}{|l|l|l|l|l|l|}
+ \hline 
+Blurred & Non-blind & $\MAP_{x,k}$ & $\MAP_k$, $\sigma_k=+\infty$ & Regularized $\MAP_k$ \\ 
+ \hline 
+\includegraphics[width=2.5cm]{results/chocolate_kernel1_blurred.png}
+\includegraphics[width=0.5cm]{images/kernel1}
+& \includegraphics[width=2.5cm]{results/chocolate_kernel1_nonblind_deconv.png}
+&\includegraphics[width=2.5cm]{results/chocolate_kernel1_MAPxk_x.png}
+\includegraphics[width=0.5cm]{results/chocolate_kernel1_MAPxk_k.png}
+&\includegraphics[width=2.5cm]{results/chocolate_kernel1_MAPk_x.png}
+\includegraphics[width=0.5cm]{results/chocolate_kernel1_MAPk_k.png}
+&\includegraphics[width=2.5cm]{results/chocolate_kernel1_MAPkreg_x.png}
+\includegraphics[width=0.5cm]{results/chocolate_kernel1_MAPkreg_k.png}
+\\ 
+ \hline\includegraphics[width=2.5cm]{results/chocolate_kernel2_blurred.png}
+\includegraphics[width=0.5cm]{images/kernel2}
+& \includegraphics[width=2.5cm]{results/chocolate_kernel2_nonblind_deconv.png}
+&\includegraphics[width=2.5cm]{results/chocolate_kernel2_MAPxk_x.png}
+\includegraphics[width=0.5cm]{results/chocolate_kernel2_MAPxk_k.png}
+&\includegraphics[width=2.5cm]{results/chocolate_kernel2_MAPk_x.png}
+\includegraphics[width=0.5cm]{results/chocolate_kernel2_MAPk_k.png}
+&\includegraphics[width=2.5cm]{results/chocolate_kernel2_MAPkreg_x.png}
+\includegraphics[width=0.5cm]{results/chocolate_kernel2_MAPkreg_k.png}
+\\ 
+ \hline\includegraphics[width=2.5cm]{results/chocolate_kernel3_blurred.png}
+\includegraphics[width=0.5cm]{images/kernel3}
+& \includegraphics[width=2.5cm]{results/chocolate_kernel3_nonblind_deconv.png}
+&\includegraphics[width=2.5cm]{results/chocolate_kernel3_MAPxk_x.png}
+\includegraphics[width=0.5cm]{results/chocolate_kernel3_MAPxk_k.png}
+&\includegraphics[width=2.5cm]{results/chocolate_kernel3_MAPk_x.png}
+\includegraphics[width=0.5cm]{results/chocolate_kernel3_MAPk_k.png}
+&\includegraphics[width=2.5cm]{results/chocolate_kernel3_MAPkreg_x.png}
+\includegraphics[width=0.5cm]{results/chocolate_kernel3_MAPkreg_k.png}
+\\ 
+ \hline\includegraphics[width=2.5cm]{results/chocolate_kernelgauss_blurred.png}
+\includegraphics[width=0.5cm]{images/kernelgauss}
+& \includegraphics[width=2.5cm]{results/chocolate_kernelgauss_nonblind_deconv.png}
+&\includegraphics[width=2.5cm]{results/chocolate_kernelgauss_MAPxk_x.png}
+\includegraphics[width=0.5cm]{results/chocolate_kernelgauss_MAPxk_k.png}
+&\includegraphics[width=2.5cm]{results/chocolate_kernelgauss_MAPk_x.png}
+\includegraphics[width=0.5cm]{results/chocolate_kernelgauss_MAPk_k.png}
+&\includegraphics[width=2.5cm]{results/chocolate_kernelgauss_MAPkreg_x.png}
+\includegraphics[width=0.5cm]{results/chocolate_kernelgauss_MAPkreg_k.png}
+\\ 
+ \hline\end{tabular} 
+
+    \caption{Results on \texttt{chocolate} image}\label{fig:results_chocolate}
+    \end{figure}
+    \begin{figure}
+    \centering
+    \begin{tabular}{|l|l|l|l|l|l|}
+ \hline 
+Blurred & Non-blind & $\MAP_{x,k}$ & $\MAP_k$, $\sigma_k=+\infty$ & Regularized $\MAP_k$ \\ 
+ \hline 
+\includegraphics[width=2.5cm]{results/candy_kernel1_blurred.png}
+\includegraphics[width=0.5cm]{images/kernel1}
+& \includegraphics[width=2.5cm]{results/candy_kernel1_nonblind_deconv.png}
+&\includegraphics[width=2.5cm]{results/candy_kernel1_MAPxk_x.png}
+\includegraphics[width=0.5cm]{results/candy_kernel1_MAPxk_k.png}
+&\includegraphics[width=2.5cm]{results/candy_kernel1_MAPk_x.png}
+\includegraphics[width=0.5cm]{results/candy_kernel1_MAPk_k.png}
+&\includegraphics[width=2.5cm]{results/candy_kernel1_MAPkreg_x.png}
+\includegraphics[width=0.5cm]{results/candy_kernel1_MAPkreg_k.png}
+\\ 
+ \hline\includegraphics[width=2.5cm]{results/candy_kernel2_blurred.png}
+\includegraphics[width=0.5cm]{images/kernel2}
+& \includegraphics[width=2.5cm]{results/candy_kernel2_nonblind_deconv.png}
+&\includegraphics[width=2.5cm]{results/candy_kernel2_MAPxk_x.png}
+\includegraphics[width=0.5cm]{results/candy_kernel2_MAPxk_k.png}
+&\includegraphics[width=2.5cm]{results/candy_kernel2_MAPk_x.png}
+\includegraphics[width=0.5cm]{results/candy_kernel2_MAPk_k.png}
+&\includegraphics[width=2.5cm]{results/candy_kernel2_MAPkreg_x.png}
+\includegraphics[width=0.5cm]{results/candy_kernel2_MAPkreg_k.png}
+\\ 
+ \hline\includegraphics[width=2.5cm]{results/candy_kernel3_blurred.png}
+\includegraphics[width=0.5cm]{images/kernel3}
+& \includegraphics[width=2.5cm]{results/candy_kernel3_nonblind_deconv.png}
+&\includegraphics[width=2.5cm]{results/candy_kernel3_MAPxk_x.png}
+\includegraphics[width=0.5cm]{results/candy_kernel3_MAPxk_k.png}
+&\includegraphics[width=2.5cm]{results/candy_kernel3_MAPk_x.png}
+\includegraphics[width=0.5cm]{results/candy_kernel3_MAPk_k.png}
+&\includegraphics[width=2.5cm]{results/candy_kernel3_MAPkreg_x.png}
+\includegraphics[width=0.5cm]{results/candy_kernel3_MAPkreg_k.png}
+\\ 
+ \hline\includegraphics[width=2.5cm]{results/candy_kernelgauss_blurred.png}
+\includegraphics[width=0.5cm]{images/kernelgauss}
+& \includegraphics[width=2.5cm]{results/candy_kernelgauss_nonblind_deconv.png}
+&\includegraphics[width=2.5cm]{results/candy_kernelgauss_MAPxk_x.png}
+\includegraphics[width=0.5cm]{results/candy_kernelgauss_MAPxk_k.png}
+&\includegraphics[width=2.5cm]{results/candy_kernelgauss_MAPk_x.png}
+\includegraphics[width=0.5cm]{results/candy_kernelgauss_MAPk_k.png}
+&\includegraphics[width=2.5cm]{results/candy_kernelgauss_MAPkreg_x.png}
+\includegraphics[width=0.5cm]{results/candy_kernelgauss_MAPkreg_k.png}
+\\ 
+ \hline\end{tabular} 
+
+    \caption{Results on \texttt{candy} image}\label{fig:results_candy}
+    \end{figure}
