@@ -69,9 +69,10 @@ Blind deconvolution}
 \section{Abstract}
 Blur is a common artifact in medical imagery, astronomy, microscopy, or even photography, which is generally undesirable as it obscures significant information.
 In many cases the distortion can be modeled as a convolution, with an unknown kernel \cite{fergus2006removing,cho2009fast,cho2010motion,jia2007single,xu2010two}. One must therefore use \emph{blind deconvolution} to estimate the kernel, along with the de-blurred image.
-Since there are more unknowns than data, the problem is ill-posed: assumptions are needed on the original image. The typical constraints are expressed as statistics on the distribution of the gradient \cite{joshi2008psf,krishnan2009fast,levi2009using,levin2007blind}, although more complex techniques have also been proposed \cite{miskin2000ensemble,jalobeanu2002satellite}. Here, we study the case of a Gaussian prior on the gradient, and show its limitations. We also consider adding a regularity prior on the kernel.
+Since there are more unknowns than data, the problem is ill-posed: assumptions are needed on the original image. The typical constraints are expressed as statistics on the distribution of the gradient \cite{joshi2008psf,krishnan2009fast,levi2009using,levin2007blind}, although more complex techniques have also been proposed \cite{miskin2000ensemble,jalobeanu2002satellite}. 
+Here, the case of a Gaussian prior on the gradient is studied, showing its limitations. From this is derived and discussed the use of a regularity prior on the kernel.
 Blind deconvolution is often performed by alternating estimation of the blur kernel and the corresponding image, within a bayesian framework \cite{richardson1972bayesian,levin2007blind,levin2009understanding,levin2011efficient,krishnan2009fast,joshi2008psf,jia2007single,levi2009using}.
-Here we use \emph{maximum a posteriori} ($\MAP$) estimation. We show numerically that, as explained in \cite{levin2011efficient}, maximizing the likelihood of the kernel ($\MAP_k$) before computing the image yields better results than estimating both image and kernel ($\MAP_{x,k}$).
+Here is used \emph{maximum a posteriori} ($\MAP$) estimation. Numerical implementation shows that, as explained in \cite{levin2011efficient}, maximizing the likelihood of the kernel ($\MAP_k$) before computing the image yields better results than estimating both image and kernel ($\MAP_{x,k}$).
 
 
 
@@ -81,7 +82,7 @@ Many photographs taken without a tripod contain disappointing motion blur caused
 In astronomy as well as microscopy, measuring tools often exhibit a wide \emph{point spread function} (PSF), which results in blurry images, in which significant data is obscured. This may be caused by atmospheric aberrations, or simply by diffraction.
 In medical imagery \cite{chen2016compressive}, data acquired with compressive sensing often shows blur, which makes readings difficult.
 
-In all these cases, we are interested in recovering an approximation of the original image, while being given only a distorted version of it:
+In all these cases, one is interested in recovering an approximation of the original image, while being given only a distorted version of it:
 \[
 y = k * x + w.
 \]
@@ -89,7 +90,7 @@ When the \emph{point spread function} (PSF) can be measured, as is sometimes the
 Restoring the original image is then a \emph{non-blind deconvolution problem}.
 This simple inverse problem can be solved efficiently: in the absence of noise, one simply needs to apply the inverse filter in the Fourier domain.
 
-Presence of noise makes things slightly more challenging.
+Presence of noise is a first challenge, as simple inversion of the linear filter often amplifies it.
 Various image priors may be used \cite{sun2014good}.
 A common form of image prior is obtained by conditioning on the derivatives. Let $(D_h x)_i$ and $(D_v x)_i$ denote the horizontal and vertical discrete derivatives of image $x$ at pixel $i$.
 Take some model $\rho$ for the repartition of the derivatives, and set
@@ -97,9 +98,9 @@ Take some model $\rho$ for the repartition of the derivatives, and set
 p(x) = \prod_i \rho((D_h x)_i) \rho((D_v x)_i) .
 \]
 Common settings for function $\rho$ are exponential of power functions \cite{krishnan2009fast,levin2009understanding}, and mixtures of Gaussians (MOG) \cite{levin2011efficient,fergus2006removing}.
-A special case of these two is the Gaussian prior, which corresponds to $\rho(v) \propto e^{-\frac{|v|}{2\sigma^2}}$, and can be reformulated as an $L^2$-sparsity prior of the gradient. In that case one obtains Wiener deconvolution, which is linear, and may be computed very efficiently in the Fourier domain. However, this technique results in ringing artifacts around edges \cite{shan2008high}.
+A special case of these two is the Gaussian prior, which corresponds to $\rho(v) \propto e^{-\frac{|v|}{2\sigma^2}}$, and can be reformulated as an $L^2$-sparsity prior on the gradient. In that case is obtained Wiener deconvolution, which is linear, and may be computed very efficiently in the Fourier domain. However, this technique results in ringing artifacts around edges \cite{shan2008high}.
 Using total variation better models the heavy-tail repartition of the derivatives in natural images \cite{chan1998total,levi2009using}.
-More advanced methods have been devised for this problem \cite{sun2014good,schmidt2013discriminative}.
+Other methods have been devised for this problem \cite{sun2014good,schmidt2013discriminative}.
 
 
 
@@ -112,11 +113,11 @@ Again, it is often conditioned with the image derivatives, using various models.
 Blind deconvolution is commonly achieved by alternating estimation of the kernel and of the image.
 This is usually done in a Bayesian framework: given an image distribution $p_x(x)$, a kernel distribution $p_k(k)$, and a noise distribution $p_w(w)$, find \emph{some likely explanation} $(x,k)$ of the observed image $y$ \cite{levin2009understanding,levin2011efficient}.
 Several estimation strategies are available for choosing a \emph{likely explanation}. The direct one is to find a pair $(\hat{x},\hat{k})$ with maximal a posteriori probability \cite{cho2009fast,cho2007removing,jia2007single,shan2008high,xu2010two}.
-As argued in \cite{levin2011efficient,levin2009understanding}, $\MAP_{x,k}$ estimation often leads to the no-blur explanation. The paper suggests to rather use $\MAP_k$ estimation, first finding the most likely kernel, then performing non-blind deconvolution \cite{fergus2006removing,whyte2012non}.
+As argued in \cite{levin2011efficient,levin2009understanding}, this $\MAP_{x,k}$ estimation often leads to the no-blur explanation. The paper suggests to rather use $\MAP_k$ estimation, first finding the most likely kernel, then performing non-blind deconvolution \cite{fergus2006removing,whyte2012non}.
 
 Whichever estimation is chosen, blind deconvolution is often performed by repeating two steps: kernel estimation, and image estimation \cite{jia2007single,fergus2006removing,levin2009understanding,levin2011efficient,shan2008high}. Some methods also include an additional `prediction' step \cite{cho2009fast}.
 
-Here we consider deblurring images using both $\MAP_{x,k}$ and $\MAP_k$ algorithms, applied with a simple Gaussian prior. Using our own implementation, we show the results and the limitations of both. We also consider adding a Gaussian regularization prior on the kernel, leading to slight improvement.
+Here, images are being deblurred using both $\MAP_{x,k}$ and $\MAP_k$ algorithms, applied with a simple Gaussian prior. Using a personal implementation, the results and the limitations of both are shown. A Gaussian regularization prior on the kernel is introduced, leading to slight improvement.
 
 
 
@@ -127,21 +128,21 @@ Suppose we are given a distorted observation $y$ of a ground truth signal $x$, a
 \begin{equation}\label{eq:convolution}
 y = k*x + w ,
 \end{equation}
-We will focus on the case when $x$ and $y$ are two-dimensional grids of pixels, but the methods can be easily generalized to higher dimensions. In particular, only the case of square images with $N = n\times n$ pixels will be treated.
+The case studied here will be when $x$ and $y$ are two-dimensional grids of $N = n \times n$ pixels, but the methods can be easily generalized to rectangular images or higher dimensions.
 
 \subsection{Priors}
 
-Whether using $\MAP_{x,k}$ or $\MAP_k$, we are trying to maximize the likelihood of our guess. In order to do that, we need an \emph{a priori} probability distribution on $(x,y,k)$.
+Whether using $\MAP_{x,k}$ or $\MAP_k$, the goal is to maximize the likelihood of our guess. In order to do that, an \emph{a priori} probability distribution on $(x,y,k)$ is needed.
 It is natural to suppose that $x$, $k$ and $w$ should be independent in formula (\ref{eq:convolution}). Everything is then characterized by the respective distributions of $x$, $k$ and $w$.
 
-We suppose every pixel of $w$ to be independent Gaussian of variance $\eta^2$. Then, by substituting $w$ with $y-k*x$, we obtain:
+Suppose every pixel of $w$ to be independent Gaussian of variance $\eta^2$. Then, substitute $w$ with $y-k*x$:
 \begin{equation}\label{eq:p_y|x,k}
 p(y\mid x,k) = \frac{1}{(\eta\sqrt{2\pi})^N} e^{-\frac{1}{2\eta^2}\norm{k*x-y}^2} .
 \end{equation}
 
-Some model is also needed to characterize the kind of regularity we can suppose on the image.
-If we were to choose a uniform image prior, then the best explanation would be absence of blur, i.e. with $x = y$ and $k$ being a single white pixel. But it makes sense to ensure some kind of regularity on the image, as some images are clearly more likely than others to appear as natural images.
-For instance, we would like an image of a face, with zones having a smooth color gradient and with clear edges and lines and dots, to be more likely than white noise, or than the same image blurred.
+Some model is also needed to characterize the kind of regularity one can suppose on the image.
+If using a uniform image prior, then the best explanation would be absence of blur, i.e. with $x = y$ and $k$ being a single white pixel. But it makes sense to ensure some kind of regularity on the image, as some images are clearly more likely than others to appear as natural images.
+For instance, one would certainly like an image of a face, with zones having a smooth color gradient and with clear edges and lines and dots, to be considered `more likely' than white noise, or than the same image with blur.
 
 Most image priors advantage some form of derivative sparsity\cite{krishnan2009fast, levin2009understanding, levin2011efficient, fergus2006removing}.
 Let us denote by $(D_h x)_i$ (respectively $(D_v x)_i$) the horizontal (respectively vertical) gradient of $x$ at the $i$-th pixel. Then the formula goes:
@@ -162,7 +163,7 @@ Function $\rho$ can take several forms in the literature.
 	\begin{equation}\label{eq:rho_gaussian}
 	\rho(v) = \frac{1}{\sigma \sqrt{2\pi}} \exp\left( -\frac{v^2}{2\sigma^2} \right) .
 	\end{equation}
-	When considering the log-likelihood, we see that this corresponds to an $L^2$-sparsity term on the gradient of $x$.
+	When considering the log-likelihood, it appears that this corresponds to an $L^2$-sparsity term on the gradient of $x$.
 	\begin{align*}
 	\log p_x(x) & = \frac{1}{2\sigma^2} \left( 
 	\sum_i (D_h x)_i^2 
@@ -170,7 +171,7 @@ Function $\rho$ can take several forms in the literature.
 	\right) + c\\
 	& = \frac{1}{2\sigma^2} \norm{\nabla x}_2^2 +c ,
 	\end{align*}
-	where $c$ is some constant (we will use letter $c$ for denoting any constant additional term, with no dependence between equations).
+	where $c$ is some constant (letter $c$ will be used for denoting any constant additional term, with no dependence between equations).
 	This prior is in fact a poor model of the repartition of derivatives. It encourages small values of the gradient, but forbids any large value to appear; whereas the actual repartition often features a heavy tail.
 	Nevertheless, it is the one that will be used in numerics, as its analytical treatment allows for easier implementation.
 	%
@@ -179,7 +180,7 @@ Function $\rho$ can take several forms in the literature.
 	\begin{equation}\label{eq:TV}
 	\log p_x(x) \propto \sum_i |(\nabla x)_i|
 	\end{equation}
-	Replacing $|(\nabla x)_i|$ by $\norm{(\nabla x)_i}_1$ (if we neglect a factor between 1 and $\sqrt{2}$) allows us to approximate this in the form of equation (\ref{eq:p_x_general}), with:
+	Replacing $|(\nabla x)_i|$ by $\norm{(\nabla x)_i}_1$ (and neglecting a norm equivalence factor between 1 and $\sqrt{2}$) allows us to approximate this in the form of equation (\ref{eq:p_x_general}), with:
 	\begin{align*}
 	\rho(v) = e^{-s|v|} .
 	\end{align*}
@@ -192,7 +193,7 @@ Function $\rho$ can take several forms in the literature.
 	\end{equation}
 	Typical values of $\alpha$ are between 0.5 and 0.8, but $\alpha=2$ yields the Gaussian model, and $\alpha=1$ yields the total variation.
 	However, this makes the problem non-convex.
-	As before, we could be tempted to formulate things in the derivative-filter domain. We would set $\rho$ to be
+	As before, one could be tempted to formulate things in the derivative-filter domain. Function $\rho$ would be set to
 	\begin{equation}\label{eq:rho_hyper_laplacian}
 	\rho(v) \propto e^{-s|v|^\alpha}.
 	\end{equation}
@@ -208,18 +209,18 @@ Function $\rho$ can take several forms in the literature.
 
 
 The kernel can often be assumed to have uniform density among kernels with positive values \cite{levi2009using}.
-We also consider regularizing it with a Gaussian prior, as the kernels obtained in our algorithms tended to be very irregular.
+But as the kernels obtained in the algorithms tended to be very irregular, let us consider applying a Gaussian prior.
 \begin{equation}\label{eq:p_k_gaussian}
 \log p(k) = -\frac{1}{2\sigma_k^2}\norm{\nabla k}_2^2
 \end{equation}
-Note that the smaller $\sigma_k$, the stronger the regularity. On the other hand, note that we can recover the uniform prior by setting $\sigma_k = +\infty$.
+Note that the smaller $\sigma_k$, the stronger the regularity. On the other hand, note that the uniform prior can be recovered by setting $\sigma_k = +\infty$.
 
 
 \subsection{Bayesian framework}
-As discussed in \cite{levin2009understanding,levin2011efficient}, we consider two strategies for finding a good explanation of the observed image.
+As discussed in \cite{levin2009understanding,levin2011efficient}, two different strategies can be used for finding a good explanation of the observed image.
 \begin{itemize}
 	\item The older, more common, and more direct strategy is to estimate \emph{both} $x$ and $k$ at the same time, by maximizing their a posteriori probability \cite{cho2009fast,cho2007removing,jia2007single,shan2008high,xu2010two}.
-	This is called $\MAP_{x,k}$ in \cite{levin2011efficient,levin2009understanding}, and is starkly criticized for often preferring the no-blur explanation.
+	This is called $\MAP_{x,k}$ and is starkly criticized in  \cite{levin2011efficient,levin2009understanding} for often preferring the no-blur explanation.
 	\begin{equation}\label{eq:MAP_xk}
 	(\MAP_{x,k}) \quad\quad (\hat{x},\hat{k}) = \argmax_{x,k} p(x,k \mid y)
 	\end{equation}
@@ -233,24 +234,24 @@ As discussed in \cite{levin2009understanding,levin2011efficient}, we consider tw
 	This evaluation strategy less often falls for the no-blur explanation. However, it is more challenging, as the integral is difficult to compute.
 \end{itemize}
 
-In both cases, we can rewrite $p(x,k \mid y)$ in terms of our priors.
+In both cases, the conditional probability $p(x,k \mid y)$ can be rewritten in terms of our priors.
 \begin{align*}
 p(x,k \mid y) &\propto p(x,k,y)\\
 &\propto p(y \mid x,k) p(x) p(k)\\
 &\propto \exp\left( -\frac{\norm{k*x-y}^2}{2\eta^2} - \frac{\norm{\nabla k}^2}{2 \sigma_k^2}  \right) \prod_i \rho((D_h x)_i) \rho((D_v x)_i) .
 \end{align*}
-Posing the Gaussian prior on $\nabla x$, we even get
+Posing the Gaussian prior on $\nabla x$, one even gets
 \begin{align*}
 -\log p(x,k \mid y) &= \frac{\norm{k*x-y}^2}{2\eta^2} + \frac{\norm{\nabla k}^2}{2 \sigma_k^2} + \frac{\norm{\nabla x}^2}{2\sigma^2} + c .
 \end{align*}
 Note that the $\MAP_{x,k}$ estimator was ill-posed without kernel regularization: one could always take $(tk,x/t)$ for some solution, and get a better score by increasing $t$.
 Our additional term counters this issue.
 
-Despite the simple form of this prior, the nonlinearity introduced by the convolution makes it impossible to directly estimate $k$ and $x$ in a single step, even for $\MAP_{x,k}$. We therefore resolve to alternate estimation.
+Despite the simple form of this prior, the nonlinearity introduced by the convolution makes it impossible to directly estimate $k$ and $x$ in a single step, even for $\MAP_{x,k}$. Alternate estimation is thus necessary.
 
 
 \subsection{Expectation-Maximization algorithm}
-Both for $\MAP_{x,k}$ and $\MAP_k$, we will be using the Expectation-Maximization algorithm, which is a standard algorithm to compute $\MAP$ estimates.
+Both for $\MAP_{x,k}$ and $\MAP_k$, the Expectation-Maximization algorithm will be used. It is a standard algorithm to compute $\MAP$ estimates.
 Supposing $x$ is a hidden variable, the algorithm consists of two steps:
 \begin{itemize}
 	\item E-step:
@@ -273,11 +274,14 @@ Supposing $x$ is a hidden variable, the algorithm consists of two steps:
 	&= \argmin_k E_{\tilde{q}} \left[ \frac{\norm{k*x-y}^2}{2\eta^2} + \frac{\norm{\nabla k}^2}{2\sigma_k^2} \right]
 	\end{align}	
 \end{itemize}
-This is an abstract formulation of the EM algorithm, but we will see that both steps can be rewritten in a more direct, numerics-oriented way.
+
+Then the algorithm improves the likelihood of the guess at each step, and converges to a local maximum.
+
+This is an abstract formulation of the EM algorithm, but it will appear that both steps can be rewritten in a more direct, numerics-oriented way.
 
 \subsubsection{E-step: theory}
 Thanks to the Gaussian prior on $\nabla x$, the computation of $\mu$ and $C$ is easily performed, as it reduces to a quadratic minimization problem.
-If we expand the expression, and we regroup what is quadratic in $x$, and what is linear, we get the following:
+Let us expand the expression, and regroup what is quadratic in $x$, and what is linear:
 \begin{align}\label{eq:e_step_quadratic}
 -\log p(x \mid y,k) &= \frac{\norm{k*x-y}^2}{2\eta^2} + \frac{\norm{\nabla x}^2}{2\sigma^2} + c \nonumber
 \\ 
@@ -294,13 +298,13 @@ Recall the general formula for a Gaussian law of mean $\mu$ and covariance $C$, 
 \begin{equation}\label{eq:general_gaussian}
 p(x) = \frac{1}{(2\pi)^{\frac{N}{2}} \sqrt{\det C}} \exp \left( -\frac{(x-\mu)^t C^{-1} (x-\mu)}{2} \right) .
 \end{equation}
-Note that if we take
+Note that if we pose $C$ and $\mu$ to be
 \begin{align}\label{eq:e_step_mu_and_C}
 C &= A_x^{-1}
 &
 \mu = C b_x ,
 \end{align}
-then we can rewrite equation (\ref{eq:e_step_quadratic}) as:
+then equation (\ref{eq:e_step_quadratic}) can be rewritten as:
 \begin{equation}\label{eq:e_step_gaussian}
 -\log p(x \mid y,k) = \frac{1}{2} (x-\mu)^t C^{-1} (x-\mu) + c
 \end{equation}
@@ -321,22 +325,23 @@ Therefore, the covariance is characterized by its diagonal in Fourier basis, whi
 
 Note that $A_x$ is indeed invertible : $Ff_h$ is nonzero at all frequencies that contain horizontal variation, $Ff_v$ is nonzero at frequencies with vertical variation. Therefore $|Ff_h|^2 + |Ff_v|^2$ takes value zero only at the null frequency. Finally, the kernel has strictly positive mean, so that the complete sum in (\ref{eq:fourier_A_x}) has only positive coefficients.
 
-In practice, it is possible to precompute $|Ff_h|^2+|Ff_v|^2$ (which are the eigenvalues of the Laplacian). We only need compute the diagonal $d_C$ of $C$ in Fourier basis (which is the pointwise inverse of that of $A_x$, and takes only one Fourier transform computation for $k$), and $\mu$ can be deduced.
+In practice, it is possible to precompute $|Ff_h|^2+|Ff_v|^2$ (which corresponds to the eigenvalues of the Laplacian). Only the diagonal $d_C$ of $C$ in Fourier basis needs to be computed (it is the pointwise inverse of that of $A_x$, and takes only one Fourier transform computation for $k$), and $\mu$ can be deduced from it.
 \begin{align}\label{eq:mu_fourier}
 \mu &= \frac{1}{\eta^2} C T_k^t y \nonumber\\
 &= \frac{1}{\eta^2} F^{-1} \diag(d_C) \diag(\overline{Fk}) Fy \nonumber\\
-\mu &= \frac{1}{\eta^2} F^{-1} (d_C \odot \overline{Fk} \odot Fy)
+\mu &= \frac{1}{\eta^2} F^{-1} (d_C \odot \overline{Fk} \odot Fy),
 \end{align}
-This shows that the computation of $\mu$ only uses two Fourier transforms (note that $Fk$ has already been computed) and some pointwise operations (on vectors of size $N$=number of pixels).
+where $\odot$ denotes element-wise multiplication of vectors.
+Hence the computation of $\mu$ only uses two Fourier transforms (note that $Fk$ has already been computed) and some pointwise operations (on vectors of size $N$=number of pixels).
 
-The Gaussian prior therefore has the advantage of allowing us to perform deconvolution with a very inexpensive process.
-Note that, as it performs linear filtering on $y$, it is at best as good as Wiener deconvolution.
+The Gaussian prior has the advantage of allowing us to perform deconvolution with a very inexpensive process.
+However, as it performs linear filtering on $y$, it is at best as good as Wiener deconvolution.
 
-Note that the rescaling of the frequencies is in fact very similar to what is done in Wiener deconvolution. Given mean power spectral densities $K,X,W$ of $k,x$ and $w$ respectively, the optimal linear filter to restore the original image has spectral power density:
+The rescaling of the frequencies is in fact very similar to what is done in Wiener deconvolution. Given mean power spectral densities $K,X,W$ of $k,x$ and $w$ respectively, the optimal linear filter to restore the original image has spectral power density:
 \begin{equation}\label{eq:wiener_deconv}
 G = \frac{\overline{K}}{|K|^2 + \frac{W}{X}}
 \end{equation}
-Considering the expressions above, the Gaussian prior performs Wiener deconvolution, with 
+Considering the expressions above, the Gaussian prior can be seen as a special case of Wiener deconvolution, with 
 \begin{align*}
 K &= Fk,& W &= \eta^2,& X &= \frac{\sigma^2}{|Ff_h|^2+|Ff_v|^2}.
 \end{align*}
@@ -351,7 +356,7 @@ Let us expand and regroup quadratic and linear terms in (\ref{eq:m_step_expectat
 \frac{1}{2} k^t A_k k - b_k k
 \right].
 \end{align*}
-In the expression above, $A_k$ and $b_k$ depend on $x$ and $y$, with quadratic terms involving $x^2$ stemming from the convolution, and linear terms related to the expansion of the difference. The Gaussian prior leads to additional differentiation-related terms.
+In the expression above, $A_k$ and $b_k$ depend on $x$ and $y$, with  terms quadratic in $k$ involving $x^2$ factors stemming from the convolution, and linear terms related to the expansion of the difference. The Gaussian prior leads to additional differentiation-related terms.
 They can be expressed as follows:
 \begin{align}
 \label{eq:m_step_A_k}
@@ -359,7 +364,7 @@ A_k(i_1,i_2) &= \sum_i x(i+i_1) x(i+i_2) + \left(\frac{D_h^tD_h + D_v^tD_v}{\sig
 \label{eq:m_step_b_k}
 b_k(i_1) &= \sum_i x(i+i_1) y(i) .
 \end{align}
-If we consider windows of $x$ to represent observations of a random variable, then $A_k$ corresponds to a covariance matrix within these windows.
+If translated windows of $x$ are considered as observations of a random variable, then $A_k$ somewhat corresponds to the covariance matrix of the resulting random variable within these windows.
 
 Taking the expectation relative to $x$ yields:
 \begin{equation}\label{eq:m_step_quadratic}
@@ -418,13 +423,7 @@ Of course, this term only appears in the case of $\MAP_k$. For $\MAP_{x,k}$, it 
 \end{itemize}
 
 
-Since the kernel size is generally not too big ($15\times 15$ in our implementation), once $\bar{A_k}$ and $\bar{b_k}$ are computed a simple quadratic solver gives the solution in a short amount of time.
-
-
-
-\subsubsection{TODO Theoretical guarantee: likelihood increase?}
-% TODO Theoretical guarantee ?
-
+Since the kernel size is generally not too big ($15\times 15$ in our implementation), once $\bar{A_k}$ and $\bar{b_k}$ are computed a simple quadratic programming solver gives the solution in a short amount of time.
 
 \section{Numerical results}
 I implemented the EM algorithm with Gaussian prior in \texttt{python}, using \texttt{numpy} for efficient computation and \texttt{scipy.optimize} for quadratic optimization in the M-step.
@@ -434,18 +433,18 @@ The results are presented in figures \ref{fig:results_louxor}-\ref{fig:results_c
 
 The images used are of size $128\times 128$ pixels, blurred with artificially-generated kernels of size $15\times 15$. The parameters used are $\sigma = 0.3$, and in the case of kernel-regularized $\MAP_k$, $\sigma_k = 6.10^{-5}$ (for larger values of $\sigma_k$ the regularization had too little effect).
 
-In order to avoid dwelling on the no-blur explanation, and to speed up convergence, we use decreasing values of $\eta$ during the algorithm. It is initialized to $1$, and multiplied by $0.7$ until it gets below $0.01$.
+In order to avoid dwelling on the no-blur explanation, and to speed up convergence, decreasing values of $\eta$ are used in the algorithm. It is initialized to $1$, and multiplied by $0.7$ until it gets below $0.01$.
 
 
 As can be seen, the Gaussian prior shows serious limitations.
 \begin{itemize}
 	\item The first issue, though not the worst, is caused by the linear filtering in our M-step, which means the best possible result is given by non-blind Wiener deconvolution.
-	Although for most kernels the issue is not too serious, when we use a Gaussian kernel, which strongly attenuates high frequencies, the Wiener filter is unable to restore them.
+	Although for most kernels the issue is not too serious, when a Gaussian kernel is applied, which strongly attenuates high frequencies, the Wiener filter is unable to restore them.
 	For all three images, the best possible result of our algorithm will in any case be blurry and exhibit ringing around edges.
 	
-	\item In all cases, we see that the $\MAP_{x,k}$ estimator completely fails at removing the blur, simply because it often does not even try.
+	\item In all cases, the $\MAP_{x,k}$ estimator completely fails at removing the blur, often because it does not even try.
 	In 4 cases out of 12, it finds that the image has not been blurred at all. In another case, it even diverges.
-	In the cases when it tries something, the result most often very similar to the blurred image, only with more ringing.
+	In the cases when it tries something, the result is either similar to the blurred image, or exhibits strong ringing.
 	
 	This illustrates the point made in \cite{levin2009understanding}, that the $\MAP_{x,k}$ estimation strategy fails to deblur images, because it favors the no-blur explanation.
 	
@@ -456,13 +455,13 @@ As can be seen, the Gaussian prior shows serious limitations.
 	The difference with the previous method is, however, that it does not result in as much ringing. Moreover, when it tries something, it goes in the right direction: for instance, on images \texttt{chocolate} and \texttt{candy} with the third kernel, $\MAP_k$ figured out that something was going on in the diagonal direction, but it just aligned a few dots and was not able to give a regular enough kernel.
 	In other cases the estimated kernel was also composed of a few isolated dots, which is rarely a good estimation.
 	
-	\item This erratic roughness in the obtained kernels led to the idea of giving the kernel a bias towards more regularity. Adding a Gaussian prior to the kernel only adds the last term to equation (\ref{eq:m_step_A_k}), and does not significantly change the necessary computations.
+	\item This erratic roughness in the obtained kernels led to the idea of giving the kernel a bias towards more regularity. Adding a Gaussian prior to the kernel only adds one term to equation (\ref{eq:m_step_A_k}), and does not significantly change the necessary computations.
 	
 	Using $\MAP_k$ with this kernel regularization leads to slight improvement in the results. The no-blur explanation is no longer favored, since it induces a strong gradient in the kernel: all results are at least a bit smooth.
 	
 	Whenever \texttt{kernelgauss} was used, the algorithm successfully found that the kernel was a smooth spot, and the failure of the deblurring mainly comes from the linear filtering approach.
 	
-	Results from using \texttt{kernel3} all feature a diagonally-oriented line of positive coefficients. However, coefficients in the middle of the image are much larger than the others, resulting in only partial restoration. Instead of a mixture of continuously translated images, it now looks like a mixture of just two; which is better, but not perfect.
+	Results from using \texttt{kernel3} all feature a diagonally-oriented line of positive coefficients. However, coefficients in the middle of the image are much larger than the others, resulting in only partial restoration. Instead of a mixture of continuously translated images, it now looks like a mixture of just two; which is better than what $\MAP_{x,k}$ and non-regularized-$\MAP_k$ did, but not perfect.
 	
 	Another improvement is found in the restoration of textures: in spite of the low fidelity of the Gaussian prior, the images recovered by kernel-regularized-$\MAP_k$ are sometimes much sharper (although still visibly distorted) than those with non-kernel-regularized-$\MAP_k$.
 	Good examples are found by looking at textures in the restored versions of image \texttt{candy}. The sugary texture on the surface of the candy is more accurately restored by kernel regularization.
@@ -475,18 +474,18 @@ As can be seen, the Gaussian prior shows serious limitations.
 
 Blind deconvolution with a Gaussian prior as presented in \cite{levin2009understanding,levin2011efficient} was generalized for using kernel regularization, and implemented in \texttt{python}.
 
-The tests, performed on $128\times 128$ images, show the limitations of the Gaussian prior: none of the original images was faithfully recovered.
+The tests, performed on several images of size $128\times 128$, show the limitations of the Gaussian prior: none of the original images was faithfully recovered.
 However, they still show significant difference between the different possible approaches, which are $\MAP_{x,k}$, $\MAP_k$ without kernel regularization, and $\MAP_k$ with kernel regularization.
 
 The Gaussian prior allows for simple computation: numerics are very efficiently performed in the Fourier domain. However, this prior does not faithfully model the repartition of gradients in natural images. In particular, edges are given a low score, and smooth gradients are preferred. It is therefore no wonder that the results obtained are disappointing.
 
-Using a non-uniform prior on the kernel (namely, a Gaussian prior on its derivatives) is possible at low computational cost, since it simply adds a Laplacian term to the quadratic minimization problem that needs to be solved.
+Using a non-uniform prior on the kernel (namely, a Gaussian prior on its derivatives) is possible at low computational cost, since it simply adds a Laplacian term to the quadratic minimization problem that needs to be solved in the M-step.
 
-Difficulty in implementing the Gaussian prior deterred me from testing more complicated models, but the mixture of Gaussians model would have similar basic steps and get much better results \cite{levin2011efficient}.
+Difficulty in implementing the Gaussian prior deterred me from testing more complicated models, but the mixture of Gaussians model would have similar basic steps and greatly improve results \cite{levin2011efficient}.
 
 One observation that could be made from the tests is that using kernel regularization does slightly improve the overall results of Gaussian-prior $\MAP_k$. 
 Maybe using kernel regularization could lead to improvement in more advanced models as well. 
-It is clear that in photography, some camera shake kernels are more likely than others: finding a good prior could probably help improve the accuracy of deblurring methods.
+It is clear that in photography, some camera shake kernels are more likely than others: finding a good prior could probably help improve the accuracy of already good deblurring methods.
 
 
 \bibliographystyle{plain}
