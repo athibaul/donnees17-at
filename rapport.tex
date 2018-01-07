@@ -1,11 +1,11 @@
 
-\documentclass[french,a4paper]{article}
+\documentclass[english,a4paper]{article}
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
 \usepackage[a4paper,margin=0.85in]{geometry} % Réduire les marges
-\usepackage[francais]{babel}
+\usepackage[english]{babel}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsthm}
@@ -97,7 +97,8 @@ Take some model $\rho$ for the repartition of the derivatives, and set
 p(x) = \prod_i \rho((D_h x)_i) \rho((D_v x)_i) .
 \]
 Common settings for function $\rho$ are exponential of power functions \cite{krishnan2009fast,levin2009understanding}, and mixtures of Gaussians (MOG) \cite{levin2011efficient,fergus2006removing}.
-In the case of a Gaussian prior, which corresponds to $\rho(v) \propto e^{-\frac{|v|}{2\sigma^2}}$, we obtain Wiener deconvolution, which may be computed very efficiently in the Fourier domain, but results in ringing artifacts \cite{shan2008high}.
+A special case of these two is the Gaussian prior, which corresponds to $\rho(v) \propto e^{-\frac{|v|}{2\sigma^2}}$, and can be reformulated as an $L^2$-sparsity prior of the gradient. In that case one obtains Wiener deconvolution, which is linear, and may be computed very efficiently in the Fourier domain. However, this technique results in ringing artifacts around edges \cite{shan2008high}.
+Using total variation better models the heavy-tail repartition of the derivatives in natural images \cite{chan1998total,levi2009using}.
 More advanced methods have been devised for this problem \cite{sun2014good,schmidt2013discriminative}.
 
 
@@ -105,56 +106,240 @@ More advanced methods have been devised for this problem \cite{sun2014good,schmi
 In most real-world cases, however, the kernel is unknown. This makes the problem of \emph{blind deconvolution} even more challenging.
 Based on the blurry image, it aims at estimating both kernel and image.
 Since the number of unknowns exceeds the data, the problem is ill-posed; it is therefore necessary to introduce assumptions about natural images.
-Most commonly, a regularity prior on the image is used \cite{krishnan2009fast,fergus2006removing,levin2007blind,levi2009using,levin2011efficient,levin2009understanding}.
-Again, it is often conditioned with the image derivatives, using various models.
+Machine-learning oriented methods exist, such as learning the deblurring filter \cite{bell1995information}, but most commonly, a regularity prior on the image is used \cite{krishnan2009fast,fergus2006removing,levin2007blind,levi2009using,levin2011efficient,levin2009understanding,chan1998total}.
+Again, it is often conditioned with the image derivatives, using various models. Wavelet sparsity priors have also been considered \cite{jalobeanu2002satellite}.
+
+Blind deconvolution is commonly achieved by alternating estimation of the kernel and of the image.
+This is usually done in a Bayesian framework: given an image distribution $p_x(x)$, a kernel distribution $p_k(k)$, and a noise distribution $p_w(w)$, find \emph{some likely explanation} $(x,k)$ of the observed image $y$ \cite{levin2009understanding,levin2011efficient}.
+Several estimation strategies are available for choosing a \emph{likely explanation}. The direct one is to find a pair $(\hat{x},\hat{k})$ with maximal a posteriori probability \cite{cho2009fast,cho2007removing,jia2007single,shan2008high,xu2010two}.
+As argued in \cite{levin2011efficient,levin2009understanding}, $\MAP_{x,k}$ estimation often leads to the no-blur explanation. The paper suggests to rather use $\MAP_k$ estimation, first finding the most likely kernel, then performing non-blind deconvolution \cite{fergus2006removing,whyte2012non}.
+
+Whichever estimation is chosen, blind deconvolution is often performed by repeating two steps: kernel estimation, and image estimation \cite{jia2007single,fergus2006removing,levin2009understanding,levin2011efficient,shan2008high}. Some methods also include an additional `prediction' step \cite{cho2009fast}.
+
+Here we consider deblurring personal images using both $\MAP_{x,k}$ and $\MAP_k$ algorithms, applied with a simple Gaussian prior. Using our own implementation, we show the results and the limitations of both. We also consider adding a Gaussian regularization prior on the kernel, leading to slight improvement.
 
 
 
-In practice, $\MAP_{x,k}$ with a Gaussian prior corresponds to alternately performing Wiener deconvolution, and kernel estimation; and $\MAP_k$ is extremely similar, but with an extra term in the kernel estimation.
+\section{Method used}
 
-
-\section{Mathematical formulation}
 \subsection{Problem}
 Suppose we are given a distorted observation $y$ of a ground truth signal $x$, and we would like to recover x. The distortion is a convolution with an unknown kernel $k$, followed by the introduction of noise $w$.
-
+\begin{equation}\label{eq:convolution}
+y = k*x + w ,
+\end{equation}
 We will focus on the case when $x$ and $y$ are two-dimensional grids of pixels, but the methods can be easily generalized to higher dimensions.
 
+\subsection{Priors}
 
-\subsection{Méthode de résolution}
-On choisit un modèle pour les images naturelles, donné par une fonction de densité $p_x$, un modèle pour les noyaux $p_k$, et un modèle pour le bruit $p_w$.
-Étant donnés ces modèles, on effectue une estimation pour le noyau en considérant le \emph{maximum a posteriori} ($\MAP_k$)~:
-\[
-\hat{k} = \argmax p\left( k \mid y \right) = \argmax \int p\left( x,k \mid y \right) dx,
-\]
-puis on calcule la déconvolution (non aveugle) à partir de ce noyau. La probabilité conditionnelle est donnée par les formules classiques~:
-\[
-p\left(x,k \mid y \right) = \frac{p(x,k,y)}{p(y)} = \frac{p(y \mid x,k) \; p(x) \; p(k)}{p(y)}
-\]
-Le dénominateur est une constante~; le premier facteur du numérateur est relatif au modèle du bruit $w = y - k*x$, le deuxième au modèle d'images, et le troisième au modèle de noyaux. On peut donc réécrire la fonction à maximiser en faisant apparaître explicitement les modèles~:
-\[
-\hat{k} = \argmax \int p_x(x) p_k(k) p_w(y - k*x) dx
-\]
+Whether using $\MAP_{x,k}$ or $\MAP_k$, we are trying to maximize the likelihood of our guess. In order to do that, we need an \emph{a priori} probability distribution on $(x,y,k)$.
+It is natural to suppose that $x$, $k$ and $w$ should be independent in formula (\ref{eq:convolution}). Everything is then characterized by the respective distributions of $x$, $k$ and $w$.
 
-\subsection{Modèles a priori}
-
-Considérons les opérateurs de dérivation discrète $(f_h,f_v) = ((-1,1),(-1,1)^T)$. Le modèle qu'on prend pour les images naturelles se base sur l'idée que les dérivées sont parcimonieuses. On se donne une fonction $\rho$, mélange de gaussiennes, puis on suppose toutes les coordonnées des dérivées indépendantes de loi $\rho$.
-\begin{align*}
-\rho((f_h*x)_i) &= \sum_j \frac{\pi_j}{\sigma_j \sqrt{2\pi}}e^{-\frac{1}{2\sigma_j^2}\norm{(f_h*x)_i}^2} \\
-p_x(x) &= \prod_i \rho\left((f_h*x)_i \right) \prod_i \rho\left((f_v*x)_i\right) .
-\end{align*}
-On suppose la loi du noyau uniforme. En prenant un bruit blanc gaussien de variance $\eta^2$ pour $w$, on obtient~:
-\[
+We suppose every pixel of $w$ to be independent Gaussian of variance $\eta^2$. Then, by substituting $w$ with $y-k*x$, we obtain:
+\begin{equation}\label{eq:p_y|x,k}
 p(y\mid x,k) = \frac{1}{(\eta\sqrt{2\pi})^N} e^{-\frac{1}{2\eta^2}\norm{k*x-y}^2} .
-\]
+\end{equation}
 
-L'intégrale à maximiser est donc~:
-\[
-\hat{k} = \argmax \int \exp\left( - \frac{\norm{k*x-y}^2}{2\eta^2} +  \sum_i \log\left(\rho((f_h*x)_i)\rho((f_v*x)_i)\right)  + c \right) .
-\]
+Some model is also needed to characterize the kind of regularity we can suppose on the image.
+If we were to choose a uniform image prior, then the best explanation would be absence of blur, i.e. with $x = y$ and $k$ being a single white pixel. But it makes sense to ensure some kind of regularity on the image, as some images are clearly more likely than others to appear as natural images.
+For instance, we would like an image of a face, with zones having a smooth color gradient and with clear edges and lines and dots, to be more likely than white noise, or than the same image blurred.
 
-La difficulté ici est que l'on effectue un calcul d'intégrale non trivial. On s'intéresse donc à des stratégies d'approximation.
+Most image priors advantage some form of derivative sparsity\cite{krishnan2009fast, levin2009understanding, levin2011efficient, fergus2006removing}.
+Let us denote by $(D_h x)_i$ (respectively $(D_v x)_i$) the horizontal (respectively vertical) gradient of $x$ at the $i$-th pixel. Then the formula goes:
+\begin{equation}\label{eq:p_x_general}
+p_x(x) = \prod_i \rho((D_h x)_i) \rho((D_v x)_i) .
+\end{equation}
+Then the prior is characterized by the choice of function $\rho$.
+It is supposed to model the heavy-tail repartition of the gradient in natural images \cite{levi2009using} (see figure \ref{fig:heavytail}).
+\begin{figure}
+	\centering
+	\includegraphics[width=10cm]{images/graph_derivatives}
+	\caption{Various models for the repartition of gradients in natural images}
+	\label{fig:heavytail}
+\end{figure}
+Function $\rho$ can take several forms in the literature.
+\begin{itemize}
+	\item The simplest alternative is a Gaussian prior \cite{levin2011efficient}:
+	\begin{equation}\label{eq:rho_gaussian}
+	\rho(v) = \frac{1}{\sigma \sqrt{2\pi}} \exp\left( -\frac{v^2}{2\sigma^2} \right) .
+	\end{equation}
+	When considering the log-likelihood, we see that this corresponds to an $L^2$-sparsity term on the gradient of $x$.
+	\begin{align*}
+	\log p_x(x) & = \frac{1}{2\sigma^2} \left( 
+	\sum_i (D_h x)_i^2 
+	+ \sum_i (D_v x)_i^2
+	\right) + c\\
+	& = \frac{1}{2\sigma^2} \norm{\nabla x}_2^2 +c ,
+	\end{align*}
+	where $c$ is some constant (we will use letter $c$ for denoting any constant additional term, with no dependence between equations).
+	This prior is in fact a poor model of the repartition of derivatives. It encourages small values of the gradient, but forbids any large value to appear; whereas the actual repartition often features a heavy tail.
+	Nevertheless, it is the one that will be used in numerics, as its analytical treatment allows for easier implementation.
+	%
+	%
+	\item A slightly better model of the heavy-tail behavior penalizes the total variation---that is, the $L^1$ norm of the derivatives.
+	\begin{equation}\label{eq:TV}
+	\log p_x(x) \propto \sum_i |(\nabla x)_i|
+	\end{equation}
+	Replacing $|(\nabla x)_i|$ by $\norm{(\nabla x)_i}_1$ (if we neglect a factor between 1 and $\sqrt{2}$) allows us to approximate this in the form of equation (\ref{eq:p_x_general}), with:
+	\begin{align*}
+	\rho(v) = e^{-s|v|} .
+	\end{align*}
+	In this case, frequency-domain formulation is however not preferable, as it leads to a change in the norm of the gradient. Using $|D_h x| + |D_v x|$ instead of $\sqrt{|D_h x|^2 + |D_v x|^2}$ may result in artifacts exhibiting horizontal or vertical bias.
+	%
+	%
+	\item One can also consider a `hyper-Laplacian' prior, where $\log \rho$ is a power law \cite{krishnan2009fast, levin2009understanding}:
+	\begin{equation}\label{eq:p_hyper_laplacian}
+	p_x(x) \propto \prod_i e^{-s|(\nabla x)_i|^\alpha}.
+	\end{equation}
+	Typical values of $\alpha$ are between 0.5 and 0.8, but $\alpha=2$ yields the Gaussian model, and $\alpha=1$ yields the total variation.
+	However, this makes the problem non-convex.
+	As before, we could be tempted to formulate things in the derivative-filter domain. We would set $\rho$ to be
+	\begin{equation}\label{eq:rho_hyper_laplacian}
+	\rho(v) \propto e^{-s|v|^\alpha}.
+	\end{equation}
+	Functions $\rho$ with this form very effectively model the heavy tail of the repartition, but using the derivative-filter formulation would lead to significant bias along the axes.
+	%
+	%
+	\item A more general model, which can approximate more complex repartitions of derivatives, takes $\rho$ to be a \emph{mixture of gaussians} (MOG) \cite{fergus2006removing,levin2011efficient}:
+	\begin{equation}\label{eq:rho_MOG}
+	\rho(v) = \sum_j \frac{\pi_j}{\sigma_j\sqrt{2\pi}} e^{-\frac{v^2}{2\sigma_j^2}} .
+	\end{equation}
+	As explained in \cite{levin2011efficient}, this model is a good explanation for the features of images, and it allows to compute blind deconvolution by using hidden variables in the Expectation-Maximization algorithm to select which Gaussian component to use.
+\end{itemize}
 
-\section{Algorithme EM}
+
+The kernel can often be assumed to have uniform density among kernels with positive values \cite{levi2009using}.
+We also consider regularizing it with a Gaussian prior, as the kernels obtained in our algorithms tended to be very irregular.
+\begin{equation}\label{eq:p_k_gaussian}
+\log p(k) = -\frac{1}{2\sigma_k^2}\norm{\nabla k}_2^2
+\end{equation}
+Note that the smaller $\sigma_k$, the stronger the regularity. On the other hand, note that we can recover the uniform prior by setting $\sigma_k = +\infty$.
+
+
+\subsection{Bayesian framework}
+As discussed in \cite{levin2009understanding,levin2011efficient}, we consider two strategies for finding a good explanation of the observed image.
+\begin{itemize}
+	\item The older, more common, and more direct strategy is to estimate \emph{both} $x$ and $k$ at the same time, by maximizing their a posteriori probability \cite{cho2009fast,cho2007removing,jia2007single,shan2008high,xu2010two}.
+	This is called $\MAP_{x,k}$ in \cite{levin2011efficient,levin2009understanding}, and is starkly criticized for often preferring the no-blur explanation.
+	\begin{equation}\label{eq:MAP_xk}
+	(\MAP_{x,k}) \quad\quad (\hat{x},\hat{k}) = \argmax_{x,k} p(x,k \mid y)
+	\end{equation}
+	%
+	%
+	\item The other approach presented in \cite{levin2009understanding} is the maximization of the a posteriori likelihood of the kernel ($\MAP_k$), with less regard to what the original image might be \cite{fergus2006removing,whyte2012non}.
+	\begin{align}\label{eq:MAP_k}
+	(\MAP_k) \quad\quad \hat{k} &= \argmax_{k} p(k \mid y)\\
+	&= \argmax_{k} \int_x p(x,k \mid y) dx \nonumber .
+	\end{align}
+	This evaluation strategy less often falls for the no-blur explanation. However, it is more challenging, as the integral is difficult to compute.
+\end{itemize}
+
+In both cases, we can rewrite $p(x,k \mid y)$ in terms of our priors.
+\begin{align*}
+p(x,k \mid y) &\propto p(x,k,y)\\
+&\propto p(y \mid x,k) p(x) p(k)\\
+&\propto \exp\left( -\frac{\norm{k*x-y}^2}{2\eta^2} - \frac{\norm{\nabla k}^2}{2 \sigma_k^2}  \right) \prod_i \rho((D_h x)_i) \rho((D_v x)_i) .
+\end{align*}
+Posing the Gaussian prior on $\nabla x$, we even get
+\begin{align*}
+-\log p(x,k \mid y) &= \frac{\norm{k*x-y}^2}{2\eta^2} + \frac{\norm{\nabla k}^2}{2 \sigma_k^2} + \frac{\norm{\nabla x}^2}{2\sigma^2} + c .
+\end{align*}
+Note that the $\MAP_{x,k}$ estimator was ill-posed without kernel regularization: one could always take $(tk,x/t)$ for some solution, and get a better score by increasing $t$.
+Our additional term counters this issue.
+
+Despite the simple form of this prior, the nonlinearity introduced by the convolution makes it impossible to directly estimate $k$ and $x$ in a single step, even for $\MAP_{x,k}$. We therefore resolve to alternate estimation.
+
+
+\subsection{Expectation-Maximization algorithm}
+Both for $\MAP_{x,k}$ and $\MAP_k$, we will be using the Expectation-Maximization algorithm, which is a standard algorithm to compute $\MAP$ estimates.
+Supposing $x$ is a hidden variable, the algorithm consists of two steps:
+\begin{itemize}
+	\item E-step:
+	Given the observed image and an estimated kernel $k$, compute the first moments of the conditional probability distribution of $x$:
+	\begin{equation}\label{eq:q}
+	q(x) = p(x | k,y) .
+	\end{equation}
+	In the case of $\MAP_k$, one should compute both the mean $\mu$ \emph{and} the covariance $C$ of this distribution. For $\MAP_{x,k}$, the mean is sufficient, and set $C=0$.
+	%
+	%
+	\item M-step:
+	Considering a Gaussian approximation of the distribution of $x$,
+	\[\tilde{q} = \mathcal{N}(\mu,C) ,\]
+	compute the maximizer of the log-likelihood of $k$:
+	\begin{align}\label{eq:M_step}
+	\hat{k} 
+	&= \argmax_k \int_x p(y \mid x,k) p(k) \tilde{q}(x) dx
+	\\
+	&= \argmax_k E_{\tilde{q}} \left[ \frac{\norm{k*x-y}^2}{2\eta^2} + \frac{\norm{\nabla k}^2}{2\sigma_k^2} \right]
+	\end{align}	
+\end{itemize}
+
+\subsubsection{E-step: theory}
+Thanks to the Gaussian prior on $\nabla x$, the computation of $\mu$ and $C$ is easily performed, as it reduces to a quadratic minimization problem.
+\begin{align}\label{eq:e_step_quadratic}
+-\log p(x | y,k) &= \frac{\norm{k*x-y}^2}{2\eta^2} + \frac{\norm{\nabla x}^2}{2\sigma^2} + c \nonumber
+\\ 
+&= \frac{1}{2}x^t A_x x - b_x x + c
+\end{align}
+with:
+\begin{align*}
+A_x &= \frac{1}{\eta^2} T_k^t T_k + \frac{1}{\sigma^2}(D_h^t D_h + D_v^t D_v)\\
+b_x &= \frac{1}{\eta^2} T_k^t y
+\end{align*}
+where $T_k$ is the operator performing convolution with kernel $k$, and $D_h$ and $D_v$ are discrete differential operators, respectively along the horizontal and the vertical axis.
+
+Recall the general formula for a Gaussian law of mean $\mu$ and covariance $C$, supposing $C$ is symmetric definite positive of size $N\times N$:
+\begin{equation}\label{eq:general_gaussian}
+p(x) = \frac{1}{(2\pi)^{\frac{N}{2}} \sqrt{\det C}} \exp \left( -\frac{(x-\mu)^t C^{-1} (x-\mu)}{2} \right) .
+\end{equation}
+Note that if we take $C = A_x^{-1}$ and $\mu = C b_x$, then we can rewrite equation (\ref{eq:e_step_quadratic}) as:
+\begin{equation}\label{eq:e_step_gaussian}
+-\log p(x | y,k) = \frac{1}{2} (x-\mu)^t C^{-1} (x-\mu) + c
+\end{equation}
+Therefore, this distribution is Gaussian, with mean $\mu$ and covariance $C$.
+
+
+\subsubsection{E-step: in practice}
+Note that operators $T_k$, $D_h$ and $D_v$, as they are convolutions, are diagonal in Fourier basis. Let us denote by $f_h$ and $f_v$ the convolution kernels corresponding to horizontal (respectively vertical) differentiation.
+\begin{align}
+T_k &= F^{-1} \diag(Fk) F\\
+D_h &= F^{-1} \diag(Ff_h) F \nonumber \\
+D_v &= F^{-1} \diag(Ff_v) F \nonumber \\
+\label{eq:fourier_A_x}
+F A_x F^{-1} &= \diag \left( \frac{|Fk|^2}{\eta^2} + \frac{|Ff_h|^2 + |Ff_v|^2}{\sigma^2} \right)
+\end{align}
+Therefore, the covariance is characterized by its diagonal in Fourier basis, which is the inverse of that of $A_x$. 
+
+Note that $A_x$ is indeed invertible : $Ff_h$ is nonzero at all frequencies that contain horizontal variation, $Ff_v$ is nonzero at frequencies with vertical variation. Therefore $|Ff_h|^2 + |Ff_v|^2$ takes value zero only at the null frequency. Finally, the kernel has strictly positive mean, so that the complete sum in (\ref{eq:fourier_A_x}) has only positive coefficients.
+
+\subsubsection{M-step: theory}
+
+\subsubsection{M-step: in practice}
+
+
+\subsubsection{Theoretical guarantee: likelihood increase?}
+
+
+
+\section{Numerical results}
+
+
+\section{Conclusion}
+Summary of the results obtained. Pros/cons, limitations, problems.
+
+Possible improvement/extension. -> Using kernel regularization sometimes seems to improve things. Why not try it on real images ? Maybe find a better prior, fitted to real-life photographic blur kernels ?
+
+
+
+\newpage
+\section{TODO : Remove this section}
+
+
+In practice, using EM for $\MAP_{x,k}$ with a Gaussian prior corresponds to alternately performing Wiener deconvolution, and kernel estimation; and $\MAP_k$ is extremely similar, but with an extra term in the kernel estimation.
+
+
+
+
+
 Une méthode classique pour calculer un maximum a posteriori (MAP) ou un maximum de vraisemblance (ML, pour \textit{maximum likelihood}) est l'algorithme Espérance-Maximisation (en anglais \textit{expectation-maximization}, ou EM). Cet algorithme permet d'estimer le maximum a posteriori lorsque le modèle probabiliste dépend de variables non observables.
 
 Ici on considère que l'image de départ $x$ est une variable cachée. 
@@ -165,5 +350,3 @@ Ici on considère que l'image de départ $x$ est une variable cachée.
 \bibliography{references}
 
 \end{document}
-
-
